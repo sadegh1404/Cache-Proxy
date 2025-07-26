@@ -2,6 +2,8 @@ package org.sadegh;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class HttpsSocket implements Runnable {
 
@@ -21,11 +23,54 @@ public class HttpsSocket implements Runnable {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
             String line = reader.readLine();
-            this.handleHttpsConnection(line, inputStream, outputStream);
+            if(line.split(" ")[0].equals("CONNECT")){
+                this.handleHttpsConnection(line, inputStream, outputStream);
+            }else{
+                this.handleHttpConnection(line, reader, inputStream, outputStream);
+            }
+
             clientSocket.close();
 
         }catch (Exception e){
             System.out.println("Error in HttpsSocket run method: " + e.getMessage());
+        }
+
+    }
+
+    private void handleHttpConnection(String uriLine, BufferedReader reader,
+                                      InputStream clientIn, OutputStream clientOut) throws URISyntaxException {
+        System.out.println("Handling HTTP request: " + uriLine);
+
+        String host =  uriLine.split(" ")[1];
+        URI uri = new URI(host);
+
+        try(Socket serverSocket = new Socket(uri.getHost(), 80)) {
+
+            InputStream serverIn = serverSocket.getInputStream();
+            OutputStream serverOut = serverSocket.getOutputStream();
+
+            // Forward the request to the server
+            serverOut.write((uriLine + "\r\n").getBytes());
+            while(reader.ready()){
+                String headerLine = reader.readLine();
+                if(headerLine == null || headerLine.isEmpty()) {
+                    break; // End of headers
+                }
+                serverOut.write((headerLine + "\r\n").getBytes());
+            }
+            serverOut.write("\r\n".getBytes());
+            serverOut.flush();
+
+            streamData(serverIn, clientOut);
+
+
+        }catch (IOException e) {
+            System.out.println("Error sending response: " + e.getMessage());
+            try {
+                clientOut.write(("HTTP/1.1 500 Internal Server Error\r\n\r\n").getBytes());
+            } catch (IOException ioException) {
+                System.out.println("Error sending error response: " + ioException.getMessage());
+            }
         }
 
     }
