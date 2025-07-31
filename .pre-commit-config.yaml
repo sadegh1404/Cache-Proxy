@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0 # Use the latest stable revision
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-merge-conflict
+
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.10.0 # Use the latest stable revision
+    hooks:
+      - id: pretty-format-java
+        args: [--aosp, --autofix] # Use AOSP style and auto-fix formatting
+
+  # Example for Checkstyle (requires precommit4j or a custom script)
+  # For Checkstyle, you might need a custom hook or precommit4j:
+  # - repo: https://github.com/SeunMatt/precommit4j # Example, check their repo for latest version
+  #   rev: v0.0.1 # Example revision
+  #   hooks:
+  #     - id: checkstyle
+  #       args: ['-c', 'your-checkstyle-config.xml'] # Path to your Checkstyle configuration
