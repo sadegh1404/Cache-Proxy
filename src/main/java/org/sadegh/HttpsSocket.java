@@ -5,6 +5,11 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+// TODO: Add Cache layer on top of the proxy server
+// TODO: Add site filtering to the proxy server
+
+
+
 public class HttpsSocket implements Runnable {
 
     public Socket clientSocket;
@@ -43,6 +48,7 @@ public class HttpsSocket implements Runnable {
 
         String host =  uriLine.split(" ")[1];
         URI uri = new URI(host);
+        // TODO: Infer port from URI. set default to 80 if not specified
 
         try(Socket serverSocket = new Socket(uri.getHost(), 80)) {
 
@@ -62,8 +68,6 @@ public class HttpsSocket implements Runnable {
             serverOut.flush();
 
             streamData(serverIn, clientOut);
-
-
         }catch (IOException e) {
             System.out.println("Error sending response: " + e.getMessage());
             try {
